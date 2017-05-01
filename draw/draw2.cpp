@@ -5,9 +5,12 @@
 #include "draw2.h"
 #include <vector>
 #include <cstdio>
+#include <fstream>
+#include <cmath>
 
 #define MAX_LOADSTRING 100
 #define TMR_1 1
+#define M_PI 3.14159265358979323846
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -29,8 +32,8 @@ RECT drawArea2 = { 50, 400, 650, 422};
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	Buttons(HWND, UINT, WPARAM, LPARAM);
+double get_radians(double);
 
 
 void MyOnPaint(HDC hdc)
@@ -58,12 +61,39 @@ void repaintWindow(HWND hWnd, HDC &hdc, PAINTSTRUCT &ps, RECT *drawArea)
 
 void inputData()
 {	
-	data.push_back(Point(0, 0));
+	std::vector<double> roll;
+	std::vector<double> pitch;
+	std::vector<double> yaw;
+
+	std::ifstream plik("outputPendulum01.log"); 
+	if (!plik) {                    		
+		return;
+	}
+
+	double liczba;
+
+	while (plik.peek() != EOF) {
+		plik >> liczba;
+		roll.push_back(liczba);
+		plik >> liczba;
+		pitch.push_back(liczba);
+		plik >> liczba;
+		yaw.push_back(liczba);
+		plik.ignore(256, '\n');
+	}
+
+	plik.close();
+
+	/*data.push_back(Point(0, 0));
 	for (int i = 1; i < 100; i++){
 		data.push_back(Point(2*i+1, 200 * rand()/RAND_MAX));
-	}
+	}*/
 }
 
+double get_radians(double degrees)
+{
+	return  degrees *  (M_PI / 180.0);
+}
 
 int OnCreate(HWND window)
 {
@@ -95,7 +125,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_DRAW, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
-
 
 
 	// Perform application initialization:
@@ -248,10 +277,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// MENU & BUTTON messages
 		// Parse the menu selections:
 		switch (wmId)
-		{
-		case IDM_ABOUT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;
+		{		
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
@@ -297,24 +323,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
 }
