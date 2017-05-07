@@ -11,6 +11,7 @@
 #define MAX_LOADSTRING 100
 #define TMR_1 1
 #define M_PI 3.14159265358979323846
+#define GRAV 9.81
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -24,8 +25,10 @@ HWND hwndButton;
 
 // sent data
 int col = 0;
+double skala_x = 1;
+double skala_y = 1;
 std::vector<Point> data;
-RECT drawArea1 = { 0, 0, 150, 200 };
+RECT drawArea1 = { 0, 0, 950, 400 };
 RECT drawArea2 = { 50, 400, 650, 422};
 
 // Forward declarations of functions included in this code module:
@@ -34,7 +37,7 @@ BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	Buttons(HWND, UINT, WPARAM, LPARAM);
 double get_radians(double);
-
+double kat_wychylenia(double, double);
 
 void MyOnPaint(HDC hdc)
 {
@@ -42,8 +45,8 @@ void MyOnPaint(HDC hdc)
 	Pen pen(Color(255, 0, 0, 255));
 	Pen pen2(Color(255, 25*col, 0, 255));
 
-	for (int i = 1; i < 100; i++)
-		graphics.DrawLine(&pen2, data[i - 1].X, data[i - 1].Y, data[i].X, data[i].Y);
+	for (int i = 1; i < 738; i++)
+		graphics.DrawLine(&pen2, static_cast<int>(skala_x * data[i - 1].X), static_cast<int>(skala_y * data[i - 1].Y), static_cast<int>(skala_x * data[i].X), static_cast<int>(skala_y * data[i].Y));
 
 	graphics.DrawRectangle(&pen, 50 + value, 400, 10, 20);
 }
@@ -71,7 +74,7 @@ void inputData()
 	}
 
 	double liczba;
-
+	
 	while (plik.peek() != EOF) {
 		plik >> liczba;
 		roll.push_back(liczba);
@@ -81,18 +84,25 @@ void inputData()
 		yaw.push_back(liczba);
 		plik.ignore(256, '\n');
 	}
-
+	
 	plik.close();
 
-	/*data.push_back(Point(0, 0));
-	for (int i = 1; i < 100; i++){
-		data.push_back(Point(2*i+1, 200 * rand()/RAND_MAX));
-	}*/
+	double T = 2 * M_PI * sqrt(0.5 / GRAV);
+	//data.push_back(Point(0, 0));
+	for (int i = 1; i < 739; i++){
+		//data.push_back(Point(2*i+1, 200 * rand()/RAND_MAX));
+		data.push_back(Point(i + 1, static_cast<int>(200 * kat_wychylenia(roll[100 + i], pitch[100 + i]))));
+	}
+}
+
+double kat_wychylenia(double a, double b)
+{
+	return atan(sqrt(pow(tan(get_radians(a)), 2) + pow(tan(get_radians(b)), 2)));
 }
 
 double get_radians(double degrees)
 {
-	return  degrees *  (M_PI / 180.0);
+	return  degrees * (M_PI / 180.0);
 }
 
 int OnCreate(HWND window)
@@ -212,22 +222,62 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
 		TEXT("Draw"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
-		300, 60,                                  // the left and top co-ordinates
-		80, 50,                              // width and height
+		960, 60,                                  // the left and top co-ordinates
+		170, 50,                              // width and height
 		hWnd,                                 // parent window handle
 		(HMENU)ID_BUTTON1,                   // the ID of your button
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
-
+	/*	
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
 		TEXT("DrawAll"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
-		300, 0,                                  // the left and top co-ordinates
+		700, 0,                                  // the left and top co-ordinates
 		80, 50,                              // width and height
 		hWnd,                                 // parent window handle
 		(HMENU)ID_BUTTON2,                   // the ID of your button
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
+		*/
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("rozciagnij_x"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		960, 120,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON3,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);                               // extra bits you dont really need
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("skurcz_x"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		960, 180,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON4,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("rozciagnij_y"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		1050, 120,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON5,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);
+
+	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
+		TEXT("skurcz_y"),                  // the caption of the button
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
+		1050, 180,                                  // the left and top co-ordinates
+		80, 50,                              // width and height
+		hWnd,                                 // parent window handle
+		(HMENU)ID_BUTTON6,                   // the ID of your button
+		hInstance,                            // the instance of your application
+		NULL);
 
 	// create button and store the handle                                                       
 
@@ -285,10 +335,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			col++;
 			if (col > 10)
 				col = 0;
+			skala_x = 1;
+			skala_y = 1;
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
 			break;
-		case ID_BUTTON2 :
-			repaintWindow(hWnd, hdc, ps, NULL);
+		//case ID_BUTTON2 :
+			//repaintWindow(hWnd, hdc, ps, NULL);
+			//break;
+		case ID_BUTTON3 :
+			skala_x *= 2;
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
+			break;
+		case ID_BUTTON4:
+			skala_x /= 2;
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
+			break;
+		case ID_BUTTON5:
+			skala_y *= 2;
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
+			break;
+		case ID_BUTTON6:
+			skala_y /= 2;
+			repaintWindow(hWnd, hdc, ps, &drawArea1);
 			break;
 		case ID_RBUTTON1:
 			SetTimer(hWnd, TMR_1, 25, 0);
