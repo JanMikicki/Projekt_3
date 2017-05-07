@@ -6,22 +6,27 @@
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
-#define IDD_DRAW_DIALOG	102
+#define IDD_DRAW_DIALOG			102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
-#define IDI_DRAW			107
+#define IDI_DRAW				107
 #define IDI_SMALL				108
-#define IDC_DRAW			109
-#define IDC_MYICON				2
+#define IDC_DRAW				109
+#define IDC_MYICON				  2
 #ifndef IDC_STATIC
-#define IDC_STATIC				-1
+#define IDC_STATIC				 -1
 #endif
 // Values for other objects (eg. buttons)
 #define ID_BUTTON1				200
 #define ID_BUTTON2				201
+#define ID_BUTTON3				202
+#define ID_BUTTON4				203
+#define ID_BUTTON5				204
+#define ID_BUTTON6				205
 #define ID_RBUTTON1				210
 #define ID_RBUTTON2				211
+
 
 // Next default values for new objects
 //
