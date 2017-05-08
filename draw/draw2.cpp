@@ -28,8 +28,9 @@ int col = 0;
 double skala_x = 1;
 double skala_y = 1;
 std::vector<Point> data;
+std::vector<int> wysokosc;
 RECT drawArea1 = { 0, 0, 950, 400 };
-RECT drawArea2 = { 50, 400, 650, 422};
+RECT drawArea2 = { 50, 420, 650, 622};
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -38,17 +39,21 @@ LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	Buttons(HWND, UINT, WPARAM, LPARAM);
 double get_radians(double);
 double kat_wychylenia(double, double);
+void wektor_wysokosci(std::vector<Point>);
+
 
 void MyOnPaint(HDC hdc)
 {
 	Graphics graphics(hdc);
 	Pen pen(Color(255, 0, 0, 255));
-	Pen pen2(Color(255, 25*col, 0, 255));
+	Pen pen2(Color(255, 25 * col, 0, 255));
 
 	for (int i = 1; i < 738; i++)
 		graphics.DrawLine(&pen2, static_cast<int>(skala_x * data[i - 1].X), static_cast<int>(skala_y * data[i - 1].Y), static_cast<int>(skala_x * data[i].X), static_cast<int>(skala_y * data[i].Y));
 
-	graphics.DrawRectangle(&pen, 50 + value, 400, 10, 20);
+	//graphics.DrawRectangle(&pen, 50 + value, 400, 10, 20);
+	for (int i = 1; i < 5; i++)
+		graphics.DrawLine(&pen, i + value, 420 + wysokosc[i - 1], i + 1 + value, 420 + wysokosc[i]);
 }
 
 void repaintWindow(HWND hWnd, HDC &hdc, PAINTSTRUCT &ps, RECT *drawArea)
@@ -67,6 +72,7 @@ void inputData()
 	std::vector<double> roll;
 	std::vector<double> pitch;
 	std::vector<double> yaw;
+	std::vector<double> wysokosc;
 
 	std::ifstream plik("outputPendulum01.log"); 
 	if (!plik) {                    		
@@ -92,6 +98,23 @@ void inputData()
 	for (int i = 1; i < 739; i++){
 		//data.push_back(Point(2*i+1, 200 * rand()/RAND_MAX));
 		data.push_back(Point(i + 1, static_cast<int>(200 * kat_wychylenia(roll[100 + i], pitch[100 + i]))));
+	}
+	wektor_wysokosci(data);
+}
+
+int oblicz_wysokosc(int kat)
+{
+	double x;
+	x = cos(kat / 200.0) / 2;
+	return 100 * (0.5 - x);
+}
+
+void wektor_wysokosci(std::vector<Point> data)
+{
+	for (int i = 1; i < 737; i++) {
+		if (data[i - 1].Y < data[i].Y && data[i + 1].Y < data[i].Y) {
+			wysokosc.push_back(oblicz_wysokosc(data[i].Y));
+		}
 	}
 }
 
