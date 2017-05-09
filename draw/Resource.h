@@ -24,6 +24,8 @@
 #define ID_BUTTON4				203
 #define ID_BUTTON5				204
 #define ID_BUTTON6				205
+#define ID_BUTTON7				206
+#define ID_EDITBOX				207
 #define ID_RBUTTON1				210
 #define ID_RBUTTON2				211
 

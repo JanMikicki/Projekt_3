@@ -22,13 +22,18 @@ INT value;
 
 // buttons
 HWND hwndButton;
+HWND hText;
 
 // sent data
 int col = 0;
+int linia = 1;
 double skala_x = 1;
 double skala_y = 1;
 std::vector<Point> data;
 std::vector<int> wektor_wysokosci;
+std::vector<double> roll;
+std::vector<double> pitch;
+
 RECT drawArea1 = { 0, 0, 950, 400 };
 RECT drawArea2 = { 50, 420, 650, 622};
 
@@ -47,13 +52,12 @@ void MyOnPaint(HDC hdc)
 	Graphics graphics(hdc);
 	Pen pen(Color(255, 0, 0, 255));
 	Pen pen2(Color(255, 25 * col, 0, 255));
+	
+	for (size_t i = 1; i < data.size(); i++)
+		graphics.DrawLine(&pen2, static_cast<int>(skala_x * data[i - 1].X), static_cast<int>(200 - skala_y * data[i - 1].Y), static_cast<int>(skala_x * data[i].X), static_cast<int>(200 - skala_y * data[i].Y));
 
-	for (int i = 1; i < 738; i++)
-		graphics.DrawLine(&pen2, static_cast<int>(skala_x * data[i - 1].X), static_cast<int>(skala_y * data[i - 1].Y), static_cast<int>(skala_x * data[i].X), static_cast<int>(skala_y * data[i].Y));
-
-	//graphics.DrawRectangle(&pen, 50 + value, 400, 10, 20);
-	for (int i = 1; i < wektor_wysokosci.size(); i++)
-		graphics.DrawLine(&pen, i + value, 420 + wektor_wysokosci[i - 1], i + 1 + value, 420 + wektor_wysokosci[i]);
+	for (int i = 1; i < value && i < wektor_wysokosci.size(); i++)
+		graphics.DrawLine(&pen, 3 * (i - 1), 420 + 100 - 8 * wektor_wysokosci[i - 1], 3 * i, 420 + 100 - 8 * wektor_wysokosci[i]);
 }
 
 void repaintWindow(HWND hWnd, HDC &hdc, PAINTSTRUCT &ps, RECT *drawArea)
@@ -69,50 +73,52 @@ void repaintWindow(HWND hWnd, HDC &hdc, PAINTSTRUCT &ps, RECT *drawArea)
 
 void inputData()
 {	
-	std::vector<double> roll;
-	std::vector<double> pitch;
-	std::vector<double> yaw;
-	std::vector<double> wektor_wysokosci;
+	roll.clear();
+	pitch.clear();
+	data.clear();
 
 	std::ifstream plik("outputPendulum01.log"); 
+	
 	if (!plik) {                    		
-		return;
+		system("pause");
+		exit(0);
 	}
 
 	double liczba;
 	
 	while (plik.peek() != EOF) {
+		while (linia) {
+			plik.ignore(256, '\n');
+			linia--;
+		}
 		plik >> liczba;
 		roll.push_back(liczba);
 		plik >> liczba;
-		pitch.push_back(liczba);
-		plik >> liczba;
-		yaw.push_back(liczba);
+		pitch.push_back(liczba);		
 		plik.ignore(256, '\n');
 	}
 	
 	plik.close();
-
-	double T = 2 * M_PI * sqrt(0.5 / GRAV);
-	//data.push_back(Point(0, 0));
-	for (int i = 1; i < 739; i++){
-		//data.push_back(Point(2*i+1, 200 * rand()/RAND_MAX));
-		data.push_back(Point(i + 1, static_cast<int>(200 * kat_wychylenia(roll[100 + i], pitch[100 + i]))));
+			
+	for (size_t i = 1; i < roll.size(); i++){
+		data.push_back(Point(i + 1, static_cast<int>(200 * kat_wychylenia(roll[i], pitch[i]))));
 	}
+	
 	wysokosc(data);
 }
 
 int oblicz_wysokosc(int kat)
-{
-	double x;
-	x = cos(kat / 200.0) / 2;
+{	
+	double x = cos(kat / 200.0) / 2;
 	return static_cast<int>(100 * (0.5 - x));
 }
 
 void wysokosc(std::vector<Point> data)
 {
-	for (int i = 1; i < 737; i++) {
-		if (data[i - 1].Y <= data[i].Y && data[i + 1].Y <= data[i].Y) {
+	//double T = 2 * M_PI * sqrt(0.5 / GRAV);
+	//int M = static_cast<int>(25 * T);
+	for (size_t i = 1; i < data.size() - 1; i++) {
+		if (data[i - 1].Y <= data[i].Y && data[i + 1].Y <= data[i].Y) {		
 			wektor_wysokosci.push_back(oblicz_wysokosc(data[i].Y));
 		}
 	}
@@ -148,7 +154,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	MSG msg;
 	HACCEL hAccelTable;
 
-	value = 0;
+	value = 1;
 
 	GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR           gdiplusToken;
@@ -251,19 +257,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		(HMENU)ID_BUTTON1,                   // the ID of your button
 		hInstance,                            // the instance of your application
 		NULL);                               // extra bits you dont really need
-	/*	
+	
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("DrawAll"),                  // the caption of the button
-		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
-		700, 0,                                  // the left and top co-ordinates
-		80, 50,                              // width and height
-		hWnd,                                 // parent window handle
-		(HMENU)ID_BUTTON2,                   // the ID of your button
-		hInstance,                            // the instance of your application
-		NULL);                               // extra bits you dont really need
-		*/
-	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("rozciagnij_x"),                  // the caption of the button
+		TEXT("< x >"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
 		960, 120,                                  // the left and top co-ordinates
 		80, 50,                              // width and height
@@ -273,7 +269,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		NULL);                               // extra bits you dont really need
 
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("skurcz_x"),                  // the caption of the button
+		TEXT("> x <"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
 		960, 180,                                  // the left and top co-ordinates
 		80, 50,                              // width and height
@@ -283,7 +279,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		NULL);
 
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("rozciagnij_y"),                  // the caption of the button
+		TEXT("< y >"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
 		1050, 120,                                  // the left and top co-ordinates
 		80, 50,                              // width and height
@@ -293,7 +289,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		NULL);
 
 	hwndButton = CreateWindow(TEXT("button"),                      // The class name required is button
-		TEXT("skurcz_y"),                  // the caption of the button
+		TEXT("> y <"),                  // the caption of the button
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,  // the styles
 		1050, 180,                                  // the left and top co-ordinates
 		80, 50,                              // width and height
@@ -302,15 +298,34 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		hInstance,                            // the instance of your application
 		NULL);
 
+	hwndButton = CreateWindow(TEXT("button"),
+		TEXT("Wczytaj"),
+		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+		1200, 170,
+		150, 50,
+		hWnd,
+		(HMENU)ID_BUTTON7,
+		hInstance,
+		NULL);
+
+	hText = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
+		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE,
+		1200, 120,
+		150, 45,
+		hWnd,
+		(HMENU)ID_EDITBOX,
+		hInstance,
+		NULL);
+
 	// create button and store the handle                                                       
 
-	hwndButton = CreateWindow(TEXT("button"), TEXT("Timer ON"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("Rysuj"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		300, 155, 100, 30, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
+		700, 400, 100, 30, hWnd, (HMENU)ID_RBUTTON1, GetModuleHandle(NULL), NULL);
 
-	hwndButton = CreateWindow(TEXT("button"), TEXT("Timer OFF"),
+	hwndButton = CreateWindow(TEXT("button"), TEXT("Stop"),
 		WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
-		300, 200, 100, 30, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
+		700, 455, 100, 30, hWnd, (HMENU)ID_RBUTTON2, GetModuleHandle(NULL), NULL);
 
 	OnCreate(hWnd);
 
@@ -361,10 +376,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			skala_x = 1;
 			skala_y = 1;
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
-			break;
-		//case ID_BUTTON2 :
-			//repaintWindow(hWnd, hdc, ps, NULL);
-			//break;
+			break;	
 		case ID_BUTTON3 :
 			skala_x *= 2;
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
@@ -381,6 +393,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			skala_y /= 2;
 			repaintWindow(hWnd, hdc, ps, &drawArea1);
 			break;
+		case ID_BUTTON7:
+		{
+			
+			linia = GetDlgItemInt(hWnd, ID_EDITBOX, NULL, TRUE);
+			if (linia > 839)
+				linia = 1;
+			
+			inputData();
+			break;
+		}
 		case ID_RBUTTON1:
 			SetTimer(hWnd, TMR_1, 25, 0);
 			break;
