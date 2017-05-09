@@ -1,6 +1,5 @@
 // draw.cpp : Defines the entry point for the application.
-//
-
+//Techniki programowania - Projekt 3 - Jan Mikicki Pawel Wilgan
 #include "stdafx.h"
 #include "draw2.h"
 #include <vector>
@@ -11,7 +10,6 @@
 #define MAX_LOADSTRING 100
 #define TMR_1 1
 #define M_PI 3.14159265358979323846
-#define GRAV 9.81
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -35,7 +33,7 @@ std::vector<double> roll;
 std::vector<double> pitch;
 
 RECT drawArea1 = { 0, 0, 950, 400 };
-RECT drawArea2 = { 50, 420, 650, 622};
+RECT drawArea2 = { 50, 400, 650, 622};
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -57,7 +55,7 @@ void MyOnPaint(HDC hdc)
 		graphics.DrawLine(&pen2, static_cast<int>(skala_x * data[i - 1].X), static_cast<int>(200 - skala_y * data[i - 1].Y), static_cast<int>(skala_x * data[i].X), static_cast<int>(200 - skala_y * data[i].Y));
 
 	for (int i = 1; i < value && i < wektor_wysokosci.size(); i++)
-		graphics.DrawLine(&pen, 3 * (i - 1), 420 + 100 - 8 * wektor_wysokosci[i - 1], 3 * i, 420 + 100 - 8 * wektor_wysokosci[i]);
+		graphics.DrawLine(&pen, 50 + 10 * (i - 1), 620 - 10 * wektor_wysokosci[i - 1],50 + 10 * i, 620 - 10 * wektor_wysokosci[i]);
 }
 
 void repaintWindow(HWND hWnd, HDC &hdc, PAINTSTRUCT &ps, RECT *drawArea)
@@ -110,15 +108,15 @@ void inputData()
 int oblicz_wysokosc(int kat)
 {	
 	double x = cos(kat / 200.0) / 2;
-	return static_cast<int>(100 * (0.5 - x));
+	return static_cast<int>(500 * (0.5 - x));
 }
 
 void wysokosc(std::vector<Point> data)
 {
-	//double T = 2 * M_PI * sqrt(0.5 / GRAV);
-	//int M = static_cast<int>(25 * T);
-	for (size_t i = 1; i < data.size() - 1; i++) {
-		if (data[i - 1].Y <= data[i].Y && data[i + 1].Y <= data[i].Y) {		
+	wektor_wysokosci.clear();
+	
+	for (size_t i = 2; i < data.size() - 2; i++) {
+		if (data[i - 2].Y <= data[i].Y && data[i + 2].Y < data[i].Y) {		
 			wektor_wysokosci.push_back(oblicz_wysokosc(data[i].Y));
 		}
 	}
@@ -301,7 +299,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hwndButton = CreateWindow(TEXT("button"),
 		TEXT("Wczytaj"),
 		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-		1200, 170,
+		970, 330,
 		150, 50,
 		hWnd,
 		(HMENU)ID_BUTTON7,
@@ -310,7 +308,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	hText = CreateWindowEx(WS_EX_CLIENTEDGE, TEXT("EDIT"), NULL,
 		WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE,
-		1200, 120,
+		970, 280,
 		150, 45,
 		hWnd,
 		(HMENU)ID_EDITBOX,
@@ -400,6 +398,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (linia > 839)
 				linia = 1;
 			
+			value = 1;
 			inputData();
 			break;
 		}
